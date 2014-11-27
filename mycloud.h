@@ -1,0 +1,2 @@
+#define MACHINE_NAME_SIZE 40
+#define FILE_NAME_SIZE 80
