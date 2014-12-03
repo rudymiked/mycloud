@@ -8,7 +8,7 @@ RUDY BROOKS
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../LibCalls.c"
+#include "LibCalls.c"
 
 
 int main(int argc, const char *argv[]) {
