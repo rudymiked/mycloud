@@ -33,11 +33,11 @@ int main(int argc, const char *argv[]) {
     return -1;
   }
 
-  /******DEBUGGING********************/
+  /******DEBUGGING********************
   int i;
   for(i=1;i<5;++i)
     printf("%d : %s \n", i, argv[i]);
-  /************************************/
+  ************************************/
 
   //run Libary/API call
   mycloud_putfile(machine_name, tcp_port, secret_key, file_name, data, datalen);
