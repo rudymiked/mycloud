@@ -35,10 +35,18 @@ int mycloud_putfile(char *MachineName, int TCPport, int SecretKey, char *FileNam
 int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filename, char *data, int datalen) {
 
   int clientfd;
-//  char buf[datalen];
+  char buf[datalen];
 
   clientfd = Open_clientfd(MachineName, TCPport);
   printf("Clientfd: %d \n", clientfd); 
+
+  /*while (Fgets(buf,datalen,file) !=NULL) {
+    Rio_readn(clientfd, data, datalen);
+    Rio_writen(clientfd, buf, strlen(buf));
+    Fputs(buf, stdout);
+  }*/
+
+  Close(clientfd);
 
   //retrieve bytes of data from "FileName" 
   //returns the number of bytes in the file, or -1 for error
