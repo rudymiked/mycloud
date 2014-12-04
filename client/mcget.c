@@ -8,17 +8,15 @@ RUDY BROOKS
 
 *******************************/
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "LibCalls.c"
 
 
-int main(int argc, const char *argv[]) {
+int main(int argc, char *argv[]) {
 
-  int datalen = 0;
-  char *data;
+  int datalen = 100;
+  char data[datalen];
 
   char *machine_name = argv[1];
   int tcp_port     = (int)argv[2][0] - '0';
