@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
   unsigned int tcp_port   = atoi(argv[2]);
   unsigned int secret_key = atoi(argv[3]);   
   char *file_name         = argv[4];
+  size_t result;
 
   FILE *f = fopen(file_name, "r");
 
@@ -45,6 +46,10 @@ int main(int argc, char *argv[]) {
 
   data = (char*) malloc (sizeof(char)*datalen);
 //  if (data == NULL) {fputs ("Memory Error - mcputs", stderr); exit(3);}  
+
+  result = fread(data, 1, datalen, f); 
+
+  printf("d: %s \n", data);
   
   fclose(f);
   free(data);
