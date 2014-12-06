@@ -12,6 +12,13 @@ RUDY BROOKS
 #include "csapp.h"
 
 int validKey(int connfd, unsigned int secretKey);
+int getRequest(int connfd);
+int storeRequest(int connfd);
+int retrieveRequest(int connfd);
+int deleteRequest(int connfd);
+int listFilesRequest(int connfd);
+
+
 
 int main(int argc, char **argv) 
 {
@@ -40,32 +47,74 @@ int main(int argc, char **argv)
 	haddrp = inet_ntoa(clientaddr.sin_addr);
 	printf("server connected to %s (%s)\n", hp->h_name, haddrp);
 
-        validKey(connfd, secretKey);
+        if(validKey(connfd, secretKey)) {
+            
+        }
+
 	Close(connfd);
     }
     exit(0);
 }
 
-// returns 0 if key is valid and -1 if invalid
+// returns 0 if key is valid or -1 if invalid
 int validKey(int connfd, unsigned int secretKey) {
     size_t n;
     char buf[SECRET_KEY_SIZE];
     rio_t rio;
+    unsigned int clientKey;
 
     Rio_readinitb(&rio, connfd);
     if((n = Rio_readnb(&rio, buf, SECRET_KEY_SIZE)) == 4) {
         printf("server received %d bytes\n", (int)n);
         printf("server's secret key is %d\n", secretKey);
-        if(atoi(buf) == secretKey) {
-            printf("server authenticated the secret key %d\n", atoi(buf));
+        
+        // Copy binary data from buffer
+        memcpy(&clientKey, &buf, SECRET_KEY_SIZE);
+        
+        // temporary for testing
+        //clientKey = atoi(buf);
+        
+        if(clientKey == secretKey) {
+            printf("successfully authenticated the client's secret key of %d\n", clientKey);
             return 0;
         } else {
-            printf("invalid secret key %d\n", atoi(buf));
+            printf("invalid client secret key %d\n", clientKey);
             return -1;
         }
     }    
     return -1;
 }
 
+// returns the request type or -1 if invalid
+int getRequest(int connfd) {
+    size_t n;
+    char buf[REQUEST_TYPE_SIZE];
+    rio_t rio;
+    unsigned int requestType;
 
+    Rio_readinitb(&rio, connfd);
+    if((n = Rio_readnb(&rio, buf, REQUEST_TYPE_SIZE)) == 4) {
+        printf("server received %d bytes\n", (int)n);
 
+        // Copy binary data from buffer
+        memcpy(&requestType, &buf, REQUEST_TYPE_SIZE);
+        return requestType;
+    }
+    return -1;
+}
+
+int storeRequest(int connfd) {
+
+}
+
+int retrieveRequest(int connfd) {
+
+}
+
+int deleteRequest(int connfd) {
+
+}
+
+int listFilesRequest(int connfd) {
+
+}

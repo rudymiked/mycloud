@@ -4,14 +4,11 @@ LIBS = -pthread
 OBJS = mycloudServer
 SRCS = mycloudServer.c
 
-all: mycloudServer
-.PHONY : all
+all: clean mycloudServer
 
 mycloudServer: mycloudServer.o
 	$(CC) $(LIBS) -o mycloudServer mycloudServer.c csapp.c
 
-.PHONY : clean
-
 clean:
-	rm $(OBJS)
+	rm -f $(OBJS) *.o
 
