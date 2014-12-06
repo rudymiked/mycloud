@@ -4,22 +4,21 @@
 int mycloud_putfile(char *MachineName, int TCPport, int SecretKey, char *FileName, char *data, int datalen) {
 
   int clientfd;
-  char buf[datalen];
-
+  
 //  printf("Machine_name: %s\n", MachineName);
 //  printf("TCPport: %d \n", TCPport); 
 
-  FILE *file = Fopen(FileName, "r+");
+  FILE *file = Fopen(FileName, "r");
 
   clientfd = Open_clientfd(MachineName, TCPport);
   printf("Clientfd: %d \n", clientfd); 
 
   //rio_readn(fd, data, datalen);
   
-  while (Fgets(buf,datalen,file) !=NULL) {
-    Rio_writen(clientfd, buf, strlen(buf));
+  while (Fgets(data,datalen,file) !=NULL) {
+    Rio_writen(clientfd, data, strlen(data));
     Rio_readn(clientfd, data, datalen);
-    Fputs(buf, stdout);
+    Fputs(data, stdout);
   }
 
   Close(clientfd);

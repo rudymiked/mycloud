@@ -17,12 +17,6 @@ int main(int argc, char *argv[]) {
   int secret_key   = (int)argv[3][0] - '0';   
   char *file_name  = argv[4];
 
-  FILE *f = fopen(file_name, "r");
-
-  if (f == 0) { //File does not exist
-    fprintf(stderr, "Cannot open input file!\n");
-    return -1;
-  }
 
   //run Libary/API call
   mycloud_delfile(machine_name, tcp_port, secret_key, file_name);
@@ -33,7 +27,5 @@ int main(int argc, char *argv[]) {
     printf("%d : %s \n", i, argv[i]);
   ************************************/
 
-  fclose(f);
-  
   return 0;
 }
