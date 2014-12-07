@@ -36,7 +36,7 @@ int mycloud_putfile(char *MachineName, int TCPport, int SecretKey, char *FileNam
   memcpy(messagePtr, &netOrder, MAX_NUM_BYTES_IN_FILE);
   messagePtr += MAX_NUM_BYTES_IN_FILE;
 
-  // Copy file data into data buffer
+  // Copy file data into message buffer
   memcpy(messagePtr, data, datalen);
   messagePtr += datalen;
 
