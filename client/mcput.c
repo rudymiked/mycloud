@@ -39,6 +39,7 @@ int main(int argc, char *argv[]) {
     fclose(file);
     mycloud_putfile(machine_name, tcp_port, secret_key, file_name, data, datalen);
     free(data);
+    printf("File Successfully Added\n");
     return 0;
   } else {
     fprintf(stderr, "Error - cannot copy all file data into buffer\n");

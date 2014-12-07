@@ -4,9 +4,7 @@ file: LibCalls.c
 
 RUDY BROOKS
 
-
 ***************************/
-
 
 #include "csapp.h"
 #include "../mycloud.h"
@@ -139,16 +137,16 @@ int mycloud_delfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
   Close(clientfd);
   free(message);
 
-
+  printf("Files Successfully Deleted\n");
   return 0;
 
 }
 
 // sends request to server for all files in server
-// prints each file separated by '\n'
+// server - prints each file separated by '\n'
 // 0 = success, -1 = error
 
-int mycloud_listfiles(char *MachineName, int TCPport, int SecretKey, char *listbuf, int listbuflen) {
+int mycloud_listfiles(char *MachineName, int TCPport, int SecretKey, char *list_buf, int list_buf_len) {
 
   int clientfd;
   char *message;
@@ -174,6 +172,9 @@ int mycloud_listfiles(char *MachineName, int TCPport, int SecretKey, char *listb
 
   clientfd = Open_clientfd(MachineName, TCPport);
   Rio_writen(clientfd, message, messageSize);
+  // Retrieve list buffer from server
+  Rio_readn(clientfd, list_buf, list_buf_len);
+  printf("list: %s \n", list_buf);
   Close(clientfd);
   free(message);
     

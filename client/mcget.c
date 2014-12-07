@@ -26,10 +26,7 @@ int main(int argc, char *argv[]) {
   if (file == 0) { fprintf(stderr, "Cannot open input file!\n"); return -1;}
 
 
-  if (argc != 5) {
-    fprintf(stderr, "Usage: ./mcget <machine> <port> <secret key> <filename>i\n");
-    return -1;
-  }
+  if (argc != 5) { fprintf(stderr, "Usage: ./mcget <machine> <port> <secret key> <filename>i\n");return -1;}
 
   // File Size
   fseek(file, 0, SEEK_END);
@@ -46,6 +43,8 @@ int main(int argc, char *argv[]) {
     //run Libary/API call
     mycloud_getfile(machine_name, tcp_port, secret_key, file_name, data, datalen);
     free(data);
+    
+    printf("File Successully Retrieved\n");
     return 0;
   } else {
     fprintf(stderr, "Memory Error - mcget\n"); return -1;
