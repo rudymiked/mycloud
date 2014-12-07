@@ -53,6 +53,8 @@ int mycloud_putfile(char *MachineName, int TCPport, int SecretKey, char *FileNam
 int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filename, char *data, int datalen) {
 
   int clientfd;
+  char *message;
+  unsigned int messageSize, netOrder;
 
   messageSize = SECRET_KEY_SIZE + REQUEST_TYPE_SIZE + FILE_NAME_SIZE;
 
@@ -73,7 +75,7 @@ int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
   messagePtr += REQUEST_TYPE_SIZE;
 
   // Copy file name into message buffer
-  memcpy(messagePtr, FileName, FILE_NAME_SIZE);
+  memcpy(messagePtr, Filename, FILE_NAME_SIZE);
   messagePtr += FILE_NAME_SIZE;
 
   // Copy file size into message buffer
@@ -97,6 +99,8 @@ int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
 int mycloud_delfile(char *MachineName, int TCPport, int SecretKey, char *Filename) { 
 
   int clientfd;
+  char *message;
+  unsigned int messageSize, netOrder;
 
   messageSize = SECRET_KEY_SIZE + REQUEST_TYPE_SIZE + FILE_NAME_SIZE;
 
@@ -117,13 +121,8 @@ int mycloud_delfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
   messagePtr += REQUEST_TYPE_SIZE;
 
   // Copy file name into message buffer
-  memcpy(messagePtr, FileName, FILE_NAME_SIZE);
+  memcpy(messagePtr, Filename, FILE_NAME_SIZE);
   messagePtr += FILE_NAME_SIZE;
-
-  // Copy file size into message buffer
-  netOrder = htonl(datalen);
-  memcpy(messagePtr, &netOrder, MAX_NUM_BYTES_IN_FILE);
-  messagePtr += MAX_NUM_BYTES_IN_FILE;
 
   clientfd = Open_clientfd(MachineName, TCPport);
   Rio_writen(clientfd, message, messageSize);
@@ -142,6 +141,8 @@ int mycloud_delfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
 int mycloud_listfiles(char *MachineName, int TCPport, int SecretKey, char *listbuf, int listbuflen) {
 
   int clientfd;
+  char *message;
+  unsigned int messageSize, netOrder;
 
   messageSize = SECRET_KEY_SIZE + REQUEST_TYPE_SIZE;
 
