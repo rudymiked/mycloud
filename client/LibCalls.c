@@ -86,11 +86,6 @@ int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
   memcpy(messagePtr, Filename, FILE_NAME_SIZE);
   messagePtr += FILE_NAME_SIZE;
 
-  // Copy file size into message buffer
-  netOrder = htonl(datalen);
-  memcpy(messagePtr, &netOrder, MAX_NUM_BYTES_IN_FILE);
-  messagePtr += MAX_NUM_BYTES_IN_FILE;
-
   clientfd = Open_clientfd(MachineName, TCPport);
   Rio_writen(clientfd, message, messageSize);
   Close(clientfd);

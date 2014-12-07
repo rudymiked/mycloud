@@ -21,12 +21,10 @@ int main(int argc, char *argv[]) {
   char *file_name           = argv[4];
   size_t n;
 
+  if (argc != 5) { fprintf(stderr, "Usage: ./mcget <machine> <port> <secret key> <filename>i\n"); return -1;}
 
   FILE *file = fopen(file_name, "r");
   if (file == 0) { fprintf(stderr, "Cannot open input file!\n"); return -1;}
-
-
-  if (argc != 5) { fprintf(stderr, "Usage: ./mcget <machine> <port> <secret key> <filename>i\n");return -1;}
 
   // File Size
   fseek(file, 0, SEEK_END);
