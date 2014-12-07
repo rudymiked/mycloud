@@ -1,0 +1,7 @@
+rm -f mcdel mcput mclist mcget *.o
+gcc    -c -o mcdel.o mcdel.c
+gcc -Wall -Wcast-qual -pthread -o mcdel mcdel.c csapp.c
+gcc    -c -o mcput.o mcput.c
+gcc -Wall -Wcast-qual -pthread -o mcput mcput.c csapp.c
+gcc    -c -o mclist.o mclist.c
+gcc -Wall -Wcast-qual -pthread -o mclist mclist.c csapp.c
