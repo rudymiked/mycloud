@@ -11,14 +11,12 @@ RUDY BROOKS
 #include "../mycloud.h"
 #include "csapp.h"
 
-int validKey(int connfd, unsigned int secretKey);
-int getRequest(int connfd);
-int storeRequest(int connfd);
-int retrieveRequest(int connfd);
-int deleteRequest(int connfd);
-int listFilesRequest(int connfd);
-
-
+int validKey(rio_t *rio, unsigned int secretKey);
+int getRequest(rio_t *rio);
+int storeRequest(rio_t *rio);
+int retrieveRequest(rio_t *rio);
+int deleteRequest(rio_t *rio);
+int listFilesRequest(rio_t *rio);
 
 int main(int argc, char **argv) 
 {
@@ -47,24 +45,41 @@ int main(int argc, char **argv)
 	haddrp = inet_ntoa(clientaddr.sin_addr);
 	printf("server connected to %s (%s)\n", hp->h_name, haddrp);
 
-        if(validKey(connfd, secretKey)) {
-            
-        }
-
+        rio_t rio;
+        Rio_readinitb(&rio, connfd);
+        int key;
+        
+        // Authenticate key
+        key = validKey(&rio, secretKey);
+        if(key == 0) {
+            // Identify request type
+            printf("--- validated ---\n");
+            int requestType = getRequest(&rio);
+            printf("requestType = %d\n", requestType);
+            if(requestType == 0) {
+                int status = retrieveRequest(&rio);
+            } else if(requestType == 1) {
+                int status = storeRequest(&rio);
+            } else if(requestType == 2) {
+                int status = deleteRequest(&rio);
+            } else if(requestType == 3) {
+                int status = listFilesRequest(&rio);
+            }
+        } else { printf("wtf key = %d\n", key); }
+        printf("----- end -----");
 	Close(connfd);
     }
+    printf("exit(0) is called");
     exit(0);
 }
 
 // Return 0 if key is valid, -1 if invalid
-int validKey(int connfd, unsigned int secretKey) {
+int validKey(rio_t *rio, unsigned int secretKey) {
     size_t n;
     char buf[SECRET_KEY_SIZE];
-    rio_t rio;
     unsigned int clientKey, netOrder;
 
-    Rio_readinitb(&rio, connfd);
-    if((n = Rio_readnb(&rio, buf, SECRET_KEY_SIZE)) == 4) {
+    if((n = Rio_readnb(rio, buf, SECRET_KEY_SIZE)) == SECRET_KEY_SIZE) {
         printf("server received %d bytes\n", (int)n);
         printf("server's secret key is %d\n", secretKey);
         
@@ -83,36 +98,91 @@ int validKey(int connfd, unsigned int secretKey) {
     return -1;
 }
 
-// returns the request type or -1 if invalid
-int getRequest(int connfd) {
+// Returns the request type or -1 if invalid
+int getRequest(rio_t *rio) {
     size_t n;
     char buf[REQUEST_TYPE_SIZE];
-    rio_t rio;
-    unsigned int requestType;
+    unsigned int requestType, netOrder;
 
-    Rio_readinitb(&rio, connfd);
-    if((n = Rio_readnb(&rio, buf, REQUEST_TYPE_SIZE)) == 4) {
+    if((n = Rio_readnb(rio, buf, REQUEST_TYPE_SIZE)) == REQUEST_TYPE_SIZE) {
         printf("server received %d bytes\n", (int)n);
 
         // Copy binary data from buffer
-        memcpy(&requestType, &buf, REQUEST_TYPE_SIZE);
+        memcpy(&netOrder, &buf, REQUEST_TYPE_SIZE);
+        requestType = ntohl(netOrder);
         return requestType;
     }
     return -1;
 }
 
-int storeRequest(int connfd) {
+// Return 0 if the store succeeds, -1 if fails
+int storeRequest(rio_t *rio) {
+    size_t n;
+    char fileNameBuf[FILE_NAME_SIZE];
+    char fileName[FILE_NAME_SIZE];
+    char fileSizeBuf[MAX_NUM_BYTES_IN_FILE];
+    unsigned int fileSize, netOrder;
+    char dataBuf[MAX_FILE_SIZE];
+    char *data;
+    FILE *fstream;
+    
+    // Read file name
+    if((n = Rio_readnb(rio, fileNameBuf, FILE_NAME_SIZE)) == FILE_NAME_SIZE) {
+        printf("server received %d bytes\n", (int)n);
+
+        // Copy binary data from buffer
+        memcpy(&fileName, &fileNameBuf, FILE_NAME_SIZE);
+        printf("fileName = %s\n", fileName);
+    } else {
+        return -1;
+    }
+
+    // Read file size
+    if((n = Rio_readnb(rio, fileSizeBuf, MAX_NUM_BYTES_IN_FILE)) == MAX_NUM_BYTES_IN_FILE) {
+        printf("server received %d bytes\n", (int)n);
+
+        // Copy binary data from buffer
+        memcpy(&netOrder, &fileSizeBuf, MAX_NUM_BYTES_IN_FILE);
+        fileSize = ntohl(netOrder);
+        printf("fileSize = %d\n", fileSize);
+    } else {
+        return -1;
+    }
+
+    // Read file data
+    if((n = Rio_readnb(rio, dataBuf, fileSize)) == fileSize) {
+        printf("server received %d bytes\n", (int)n);
+
+        // Allocate memory for the data
+        data = (char*) malloc (sizeof(char)*fileSize);
+        if(data == NULL) { fprintf(stderr, "Memory Error - mcput\n"); return -1; }
+
+        // Copy binary data from buffer
+        memcpy(data, &dataBuf, fileSize);
+    } else {
+        return -1;
+    }
+
+    // Write to file
+    if((fstream = Fopen(fileName, "w")) != NULL) {
+        Fwrite(data, sizeof(char), fileSize, fstream);
+        Fclose(fstream);
+    } else {
+        return -1;
+    }
+
+    free(data);
+    return 0;
+}
+
+int retrieveRequest(rio_t *rio) {
 
 }
 
-int retrieveRequest(int connfd) {
+int deleteRequest(rio_t *rio) {
 
 }
 
-int deleteRequest(int connfd) {
-
-}
-
-int listFilesRequest(int connfd) {
+int listFilesRequest(rio_t *rio) {
 
 }
