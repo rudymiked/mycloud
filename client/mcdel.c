@@ -12,10 +12,10 @@ RUDY BROOKS
 
 int main(int argc, char *argv[]) {
 
-  char *machine_name = argv[1];
-  int tcp_port     = (int)argv[2][0] - '0';
-  int secret_key   = (int)argv[3][0] - '0';   
-  char *file_name  = argv[4];
+  char *machine_name      = argv[1];
+  unsigned int tcp_port   = atoi(argv[2]);
+  unsigned int secret_key = atoi(argv[3]);   
+  char *file_name         = argv[4];
 
 
   //run Libary/API call

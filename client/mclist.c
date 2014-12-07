@@ -13,15 +13,16 @@ RUDY BROOKS
 
 int main(int argc, char *argv[]){
 
-  int list_buflen = 100;
-  char list_buf[list_buflen];
+  int list_buflen;
+  char *list_buf;
 
   char *machine_name = argv[1];
-  int tcp_port     = (int)argv[2][0] - '0';
-  int secret_key   = (int)argv[3][0] - '0';  
+  unsigned int tcp_port     = atoi(argv[2]);
+  unsigned int secret_key   = atoi(argv[3]);  
 
   mycloud_listfiles(machine_name, tcp_port, secret_key, list_buf, list_buflen);
 
+  printf("%s \n", list_buf);
 
   return 0;
 }

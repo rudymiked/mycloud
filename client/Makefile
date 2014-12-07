@@ -1,5 +1,5 @@
 CC = gcc
-FLAGS = -Wall -Wcast-qual
+FLAGS = -Wall
 LIBS = -pthread
 OBJS = mcdel mcput mclist mcget
 SRCS = mcdel.c mcput.c mclist.c mcget.c
