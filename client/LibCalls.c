@@ -44,6 +44,7 @@ int mycloud_putfile(char *MachineName, int TCPport, int SecretKey, char *FileNam
   Rio_writen(clientfd, message, messageSize);
   Close(clientfd);
   free(message);
+
   return 0;
 }
 
@@ -51,7 +52,6 @@ int mycloud_putfile(char *MachineName, int TCPport, int SecretKey, char *FileNam
 int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filename, char *data, int datalen) {
 
   int clientfd;
-  char buf[datalen];
 
   clientfd = Open_clientfd(MachineName, TCPport);
   printf("Clientfd: %d \n", clientfd); 

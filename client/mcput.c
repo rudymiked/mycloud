@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 
   // Allocate memory for the data buffer
   data = (char*) malloc (sizeof(char)*datalen);
-  if(data == NULL) { fprintf(stderr, "Memory Error - mcputs\n"); return -1; }
+  if(data == NULL) { fprintf(stderr, "Memory Error - mcput\n"); return -1; }
 
   // Copy file data into data buffer and call API
   if((n = fread(data, 1, datalen, file)) == datalen) {
