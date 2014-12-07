@@ -13,10 +13,10 @@ RUDY BROOKS
 
 int validKey(rio_t *rio, unsigned int secretKey);
 int getRequest(rio_t *rio);
-int storeRequest(rio_t *rio);
-int retrieveRequest(rio_t *rio);
-int deleteRequest(rio_t *rio);
-int listFilesRequest(rio_t *rio);
+int storeRequest(rio_t *rio, int connfd);
+int retrieveRequest(rio_t *rio, int connfd);
+int deleteRequest(rio_t *rio, int connfd);
+int listFilesRequest(rio_t *rio, int connfd);
 
 int main(int argc, char **argv) 
 {
@@ -47,29 +47,23 @@ int main(int argc, char **argv)
 
         rio_t rio;
         Rio_readinitb(&rio, connfd);
-        int key;
         
         // Authenticate key
-        key = validKey(&rio, secretKey);
-        if(key == 0) {
+        if(validKey(&rio, secretKey) == 0) {
             // Identify request type
-            printf("--- validated ---\n");
             int requestType = getRequest(&rio);
-            printf("requestType = %d\n", requestType);
             if(requestType == 0) {
-                int status = retrieveRequest(&rio);
+                int status = retrieveRequest(&rio, connfd);
             } else if(requestType == 1) {
-                int status = storeRequest(&rio);
+                int status = storeRequest(&rio, connfd);
             } else if(requestType == 2) {
-                int status = deleteRequest(&rio);
+                int status = deleteRequest(&rio, connfd);
             } else if(requestType == 3) {
-                int status = listFilesRequest(&rio);
+                int status = listFilesRequest(&rio, connfd);
             }
-        } else { printf("wtf key = %d\n", key); }
-        printf("----- end -----");
+        }
 	Close(connfd);
     }
-    printf("exit(0) is called");
     exit(0);
 }
 
@@ -116,14 +110,14 @@ int getRequest(rio_t *rio) {
 }
 
 // Return 0 if the store succeeds, -1 if fails
-int storeRequest(rio_t *rio) {
+int storeRequest(rio_t *rio, int connfd) {
     size_t n;
     char fileNameBuf[FILE_NAME_SIZE];
     char fileName[FILE_NAME_SIZE];
     char fileSizeBuf[MAX_NUM_BYTES_IN_FILE];
-    unsigned int fileSize, netOrder;
+    unsigned int fileSize, netOrder, status, messageSize;
     char dataBuf[MAX_FILE_SIZE];
-    char *data;
+    char *data, message;
     FILE *fstream;
     
     // Read file name
@@ -134,7 +128,7 @@ int storeRequest(rio_t *rio) {
         memcpy(&fileName, &fileNameBuf, FILE_NAME_SIZE);
         printf("fileName = %s\n", fileName);
     } else {
-        return -1;
+        status = -1;
     }
 
     // Read file size
@@ -146,7 +140,7 @@ int storeRequest(rio_t *rio) {
         fileSize = ntohl(netOrder);
         printf("fileSize = %d\n", fileSize);
     } else {
-        return -1;
+        status = -1;
     }
 
     // Read file data
@@ -160,29 +154,51 @@ int storeRequest(rio_t *rio) {
         // Copy binary data from buffer
         memcpy(data, &dataBuf, fileSize);
     } else {
-        return -1;
+        status = -1;
     }
 
     // Write to file
     if((fstream = Fopen(fileName, "w")) != NULL) {
         Fwrite(data, sizeof(char), fileSize, fstream);
         Fclose(fstream);
+        status = 0;
     } else {
-        return -1;
+        status = -1;
     }
-
     free(data);
-    return 0;
+
+    /*************************
+     * Send response message *
+     *************************/
+
+    // Set message size according to the protocol
+    messageSize = STATUS_SIZE;
+
+    // Allocate memory for the message buffer defined by the protocol
+    message = (char*) malloc (sizeof(char*)*messageSize);
+    if(message == NULL) { fprintf(stderr, "Memory Error - mcputs\n"); return -1; }
+    char *messagePtr = message;
+
+    // Copy the operational status into message buffer
+    netOrder = htonl(status);
+    memcpy(messagePtr, &netOrder, STATUS_SIZE);
+    messagePtr += STATUS_SIZE;
+
+    // Send the response message
+    Rio_writen(connfd, message, messageSize);
+    free(message);
+
+    return status;
 }
 
-int retrieveRequest(rio_t *rio) {
+int retrieveRequest(rio_t *rio, int connfd) {
 
 }
 
-int deleteRequest(rio_t *rio) {
+int deleteRequest(rio_t *rio, int connfd) {
 
 }
 
-int listFilesRequest(rio_t *rio) {
+int listFilesRequest(rio_t *rio, int connfd) {
 
 }
