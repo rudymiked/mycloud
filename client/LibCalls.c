@@ -88,6 +88,7 @@ int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
 
   clientfd = Open_clientfd(MachineName, TCPport);
   Rio_writen(clientfd, message, messageSize);
+  Rio_readn(clientfd, data, datalen);
   Close(clientfd);
   free(message);
 
