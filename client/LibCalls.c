@@ -48,55 +48,124 @@ int mycloud_putfile(char *MachineName, int TCPport, int SecretKey, char *FileNam
   return 0;
 }
 
-
+//retrieve bytes of data from "FileName" 
+//returns the number of bytes in the file, or -1 for error
 int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filename, char *data, int datalen) {
 
   int clientfd;
 
+  messageSize = SECRET_KEY_SIZE + REQUEST_TYPE_SIZE + FILE_NAME_SIZE;
+
+  // Allocate memory for the message buffer defined by the protocol
+  message = (char*) malloc (sizeof(char)*messageSize);
+  if(message == NULL) { fprintf(stderr, "Memory Error - mcputs\n"); return -1; }
+  char *messagePtr = message;
+
+  // Copy secret key into message buffer
+  netOrder = htonl(SecretKey);
+  memcpy(messagePtr, &netOrder, SECRET_KEY_SIZE);
+  messagePtr += SECRET_KEY_SIZE;
+
+  // Copy request type into message buffer
+  unsigned int request = 0;
+  netOrder = htonl(request);
+  memcpy(messagePtr, &netOrder, REQUEST_TYPE_SIZE);
+  messagePtr += REQUEST_TYPE_SIZE;
+
+  // Copy file name into message buffer
+  memcpy(messagePtr, FileName, FILE_NAME_SIZE);
+  messagePtr += FILE_NAME_SIZE;
+
+  // Copy file size into message buffer
+  netOrder = htonl(datalen);
+  memcpy(messagePtr, &netOrder, MAX_NUM_BYTES_IN_FILE);
+  messagePtr += MAX_NUM_BYTES_IN_FILE;
+
   clientfd = Open_clientfd(MachineName, TCPport);
-  printf("Clientfd: %d \n", clientfd); 
-
-  /*while (Fgets(buf,datalen,file) !=NULL) {
-    Rio_readn(clientfd, data, datalen);
-    Rio_writen(clientfd, buf, strlen(buf));
-    Fputs(buf, stdout);
-  }*/
-
+  Rio_writen(clientfd, message, messageSize);
   Close(clientfd);
+  free(message);
 
-  //retrieve bytes of data from "FileName" 
-  //returns the number of bytes in the file, or -1 for error
-
+  
   return 0;
 }
 
+
+
+// send message to server requesting to delete "FileName"
+// return 0 for success, -1 for error
 int mycloud_delfile(char *MachineName, int TCPport, int SecretKey, char *Filename) { 
 
   int clientfd;
 
+  messageSize = SECRET_KEY_SIZE + REQUEST_TYPE_SIZE + FILE_NAME_SIZE;
+
+  // Allocate memory for the message buffer defined by the protocol
+  message = (char*) malloc (sizeof(char)*messageSize);
+  if(message == NULL) { fprintf(stderr, "Memory Error - mcputs\n"); return -1; }
+  char *messagePtr = message;
+
+  // Copy secret key into message buffer
+  netOrder = htonl(SecretKey);
+  memcpy(messagePtr, &netOrder, SECRET_KEY_SIZE);
+  messagePtr += SECRET_KEY_SIZE;
+
+  // Copy request type into message buffer
+  unsigned int request = 2;
+  netOrder = htonl(request);
+  memcpy(messagePtr, &netOrder, REQUEST_TYPE_SIZE);
+  messagePtr += REQUEST_TYPE_SIZE;
+
+  // Copy file name into message buffer
+  memcpy(messagePtr, FileName, FILE_NAME_SIZE);
+  messagePtr += FILE_NAME_SIZE;
+
+  // Copy file size into message buffer
+  netOrder = htonl(datalen);
+  memcpy(messagePtr, &netOrder, MAX_NUM_BYTES_IN_FILE);
+  messagePtr += MAX_NUM_BYTES_IN_FILE;
+
   clientfd = Open_clientfd(MachineName, TCPport);
-  printf("Clientfd: %d \n", clientfd); 
+  Rio_writen(clientfd, message, messageSize);
+  Close(clientfd);
+  free(message);
 
-
-  //send message to server requesting to delete "FileName"
-  //return 0 for success, -1 for error
 
   return 0;
 
 }
 
+// sends request to server for all files in server
+// prints each file separated by '\n'
+// 0 = success, -1 = error
 
 int mycloud_listfiles(char *MachineName, int TCPport, int SecretKey, char *listbuf, int listbuflen) {
 
   int clientfd;
 
-  clientfd = Open_clientfd(MachineName, TCPport);
-  printf("Clientfd: %d \n", clientfd); 
+  messageSize = SECRET_KEY_SIZE + REQUEST_TYPE_SIZE;
 
-  //sends request to server for all files in server
-  //prints each file separated by '\n'
-  // 0 = success, -1 = error
-  
+  // Allocate memory for the message buffer defined by the protocol
+  message = (char*) malloc (sizeof(char)*messageSize);
+  if(message == NULL) { fprintf(stderr, "Memory Error - mcputs\n"); return -1; }
+  char *messagePtr = message;
+
+  // Copy secret key into message buffer
+  netOrder = htonl(SecretKey);
+  memcpy(messagePtr, &netOrder, SECRET_KEY_SIZE);
+  messagePtr += SECRET_KEY_SIZE;
+
+  // Copy request type into message buffer
+  unsigned int request = 3;
+  netOrder = htonl(request);
+  memcpy(messagePtr, &netOrder, REQUEST_TYPE_SIZE);
+  messagePtr += REQUEST_TYPE_SIZE;
+
+  clientfd = Open_clientfd(MachineName, TCPport);
+  Rio_writen(clientfd, message, messageSize);
+  Close(clientfd);
+  free(message);
+    
   return 0;
 
 }
