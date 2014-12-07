@@ -37,10 +37,10 @@ int main(int argc, char *argv[]) {
   // Copy file data into data buffer and call API
   if((n = fread(data, 1, datalen, file)) == datalen) {
     fclose(file);
-    mycloud_putfile(machine_name, tcp_port, secret_key, file_name, data, datalen);
+    int status = mycloud_putfile(machine_name, tcp_port, secret_key, file_name, data, datalen);
     free(data);
-    printf("File Successfully Added\n");
-    return 0;
+    printf("Status = %d\n", status);
+    return status;
   } else {
     fprintf(stderr, "Error - cannot copy all file data into buffer\n");
     fclose(file);

@@ -52,8 +52,8 @@ int main(int argc, char **argv)
         if(validKey(&rio, secretKey) == 0) {
             // Identify request type
             int requestType = getRequest(&rio);
-            if(requestType == 0) {
-                int status = retrieveRequest(&rio, connfd);
+		    if(requestType == 0) {
+			int status = retrieveRequest(&rio, connfd);
             } else if(requestType == 1) {
                 int status = storeRequest(&rio, connfd);
             } else if(requestType == 2) {
@@ -117,7 +117,7 @@ int storeRequest(rio_t *rio, int connfd) {
     char fileSizeBuf[MAX_NUM_BYTES_IN_FILE];
     unsigned int fileSize, netOrder, status, messageSize;
     char dataBuf[MAX_FILE_SIZE];
-    char *data, message;
+    char *data, *message;
     FILE *fstream;
     
     // Read file name

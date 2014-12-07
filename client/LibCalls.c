@@ -50,15 +50,25 @@ int mycloud_putfile(char *MachineName, int TCPport, int SecretKey, char *FileNam
 
   clientfd = Open_clientfd(MachineName, TCPport);
   Rio_writen(clientfd, message, messageSize);
-
-  char *status;
-
-  Rio_readn(clientfd, status, STATUS_SIZE);
-  Fputs(status, stdout);
-  Close(clientfd);
   free(message);
 
-  return 0;
+  //
+  // Receieve operational status
+  //
+  size_t n;
+  char buf[STATUS_SIZE];
+  unsigned int status;
+  rio_t rio;
+  Rio_readinitb(&rio, clientfd);
+  
+  status = -1;
+  if((n = Rio_readnb(&rio, buf, STATUS_SIZE)) == STATUS_SIZE) {
+    // Copy binary data from buffer
+    memcpy(&netOrder, &buf, STATUS_SIZE);
+    status = ntohl(netOrder);
+  }
+  Close(clientfd);
+  return status;
 }
 
 //retrieve bytes of data from "FileName" 
