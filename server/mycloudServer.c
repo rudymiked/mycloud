@@ -56,12 +56,12 @@ int main(int argc, char **argv)
     exit(0);
 }
 
-// returns 0 if key is valid or -1 if invalid
+// Return 0 if key is valid, -1 if invalid
 int validKey(int connfd, unsigned int secretKey) {
     size_t n;
     char buf[SECRET_KEY_SIZE];
     rio_t rio;
-    unsigned int clientKey;
+    unsigned int clientKey, netOrder;
 
     Rio_readinitb(&rio, connfd);
     if((n = Rio_readnb(&rio, buf, SECRET_KEY_SIZE)) == 4) {
@@ -69,16 +69,14 @@ int validKey(int connfd, unsigned int secretKey) {
         printf("server's secret key is %d\n", secretKey);
         
         // Copy binary data from buffer
-        memcpy(&clientKey, &buf, SECRET_KEY_SIZE);
-        
-        // temporary for testing
-        //clientKey = atoi(buf);
-        
+        memcpy(&netOrder, &buf, SECRET_KEY_SIZE);
+        clientKey = ntohl(netOrder);        
+
         if(clientKey == secretKey) {
             printf("successfully authenticated the client's secret key of %d\n", clientKey);
             return 0;
         } else {
-            printf("invalid client secret key %d\n", clientKey);
+            printf("invalid client secret key of %d\n", clientKey);
             return -1;
         }
     }    

@@ -1,33 +1,50 @@
 #include "csapp.h"
 #include "../mycloud.h"
 
+// Send bytes of data to the cloud server
+// Return 0 for success, -1 for error
 int mycloud_putfile(char *MachineName, int TCPport, int SecretKey, char *FileName, char *data, int datalen) {
-
   int clientfd;
-  
-//  printf("Machine_name: %s\n", MachineName);
-//  printf("TCPport: %d \n", TCPport); 
+  char *message;
+  unsigned int messageSize, netOrder;
 
-  FILE *file = Fopen(FileName, "r");
+  // Set message size according to the protocol
+  messageSize = SECRET_KEY_SIZE + REQUEST_TYPE_SIZE + FILE_NAME_SIZE + MAX_NUM_BYTES_IN_FILE + datalen;
+
+  // Allocate memory for the message buffer defined by the protocol
+  message = (char*) malloc (sizeof(char)*messageSize);
+  if(message == NULL) { fprintf(stderr, "Memory Error - mcputs\n"); return -1; }
+  char *messagePtr = message;
+
+  // Copy secret key into message buffer
+  netOrder = htonl(SecretKey);
+  memcpy(messagePtr, &netOrder, SECRET_KEY_SIZE);
+  messagePtr += SECRET_KEY_SIZE;
+
+  // Copy request type into message buffer
+  unsigned int request = 1;
+  netOrder = htonl(request);
+  memcpy(messagePtr, &netOrder, REQUEST_TYPE_SIZE);
+  messagePtr += REQUEST_TYPE_SIZE;
+
+  // Copy file name into message buffer
+  memcpy(messagePtr, FileName, FILE_NAME_SIZE);
+  messagePtr += FILE_NAME_SIZE;
+
+  // Copy file size into message buffer
+  netOrder = htonl(datalen);
+  memcpy(messagePtr, &netOrder, MAX_NUM_BYTES_IN_FILE);
+  messagePtr += MAX_NUM_BYTES_IN_FILE;
+
+  // Copy file data into data buffer
+  memcpy(messagePtr, data, datalen);
+  messagePtr += datalen;
 
   clientfd = Open_clientfd(MachineName, TCPport);
-  printf("Clientfd: %d \n", clientfd); 
-
-  //rio_readn(fd, data, datalen);
-  
-  while (Fgets(data,datalen,file) !=NULL) {
-    Rio_writen(clientfd, data, strlen(data));
-    Rio_readn(clientfd, data, datalen);
-    Fputs(data, stdout);
-  }
-
+  Rio_writen(clientfd, message, messageSize);
   Close(clientfd);
-  
+  free(message);
   return 0;
-  
-  //send bytes of data to the cloud server
-  //return 0 for success, -1 for error
-
 }
 
 
