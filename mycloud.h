@@ -5,3 +5,4 @@
 #define STATUS_SIZE 4
 #define MAX_NUM_BYTES_IN_FILE 4
 #define MAX_FILE_SIZE 100000
+#define MAX_NUM_FILES 100
