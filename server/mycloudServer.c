@@ -133,7 +133,7 @@ int storeRequest(rio_t *rio, int connfd) {
     unsigned int fileSize, netOrder, status, messageSize;
     char dataBuf[MAX_FILE_SIZE];
     char *data, *message;
-    FILE *fstream;
+    FILE *file;
 
     /******************************
      * Store Request Message      *
@@ -171,9 +171,9 @@ int storeRequest(rio_t *rio, int connfd) {
     }
 
     // Write to file and update file list
-    if((fstream = Fopen(fileName, "w")) != NULL) {
-        Fwrite(data, sizeof(char), fileSize, fstream);
-        Fclose(fstream);
+    if((file = Fopen(fileName, "w")) != NULL) {
+        Fwrite(data, sizeof(char), fileSize, file);
+        Fclose(file);
         if(addFileToList(fileName) == 0) { status = 0; }
         else {status = -1; }
     } else {
@@ -210,11 +210,9 @@ int retrieveRequest(rio_t *rio, int connfd) {
     size_t n;
     char fileNameBuf[FILE_NAME_SIZE];
     char fileName[FILE_NAME_SIZE];
-    char fileSizeBuf[MAX_NUM_BYTES_IN_FILE];
     unsigned int fileSize, netOrder, status, messageSize;
-    char dataBuf[MAX_FILE_SIZE];
     char *data, *message;
-    FILE *fstream;
+    FILE *file;
 
     /******************************
      * Retrieve Request Message   *
@@ -238,16 +236,16 @@ int retrieveRequest(rio_t *rio, int connfd) {
     if(fileInList(fileName) == -1) { fileSize = 0; status = -1; }
     else {
         // Check if file exists and open it
-        fstream = fopen(fileName, "r");
-        if(fstream == 0) { fprintf(stderr, "Cannot open input file!\n"); fileSize = 0; status = -1; }
+        file = fopen(fileName, "r");
+        if(file == 0) { fprintf(stderr, "Cannot open input file!\n"); fileSize = 0; status = -1; }
         else {
             // Obtain file size
-            fseek(fstream, 0, SEEK_END);
-            fileSize = ftell(fstream);
-            rewind(fstream);
+            fseek(file, 0, SEEK_END);
+            fileSize = ftell(file);
+            rewind(file);
 
             // Copy file data into data buffer
-            if((n = fread(data, 1, fileSize, fstream)) == fileSize) { fclose(fstream); status = 1; }
+            if((n = fread(data, 1, fileSize, file)) == fileSize) { fclose(file); status = 0; }
             else { fileSize = 0; status = -1; }
         }
     }
@@ -282,34 +280,100 @@ int retrieveRequest(rio_t *rio, int connfd) {
     return status;
 }
 
+// Returns 0 if the delete is successful, -1 if fails
 int deleteRequest(rio_t *rio, int connfd) {
-
+    size_t n;
+    char fileNameBuf[FILE_NAME_SIZE];
+    char fileName[FILE_NAME_SIZE];
+    unsigned int netOrder, status, messageSize;
+    char *message;   
 
     /*******************************
      * Delete Request Message      *
      *******************************/
-
+    
+    // Read file name
+    if((n = Rio_readnb(rio, fileNameBuf, FILE_NAME_SIZE)) == FILE_NAME_SIZE) {
+        // Copy binary data from buffer
+        memcpy(&fileName, &fileNameBuf, FILE_NAME_SIZE);
+        printf("Filename         = %s\n", fileName);
+    } else {
+        printf("Filename         = NONE\n");
+        status = -1;
+    }
 
     /*******************************
      * Delete Response Message     *
      *******************************/
 
+    // Check if file is in list and remove it
+    if(removeFileFromList(fileName) == -1) { status = -1; }
+    else {
+        // Delete file
+        if(remove(fileName) != 0) { status = -1; }
+        else { status = 0; }
+    }
 
+    // Set message size according to the protocol
+    messageSize = STATUS_SIZE;
+
+    // Allocate memory for the message buffer defined by the protocol
+    message = (char*) malloc (sizeof(char*)*messageSize);
+    if(message == NULL) { fprintf(stderr, "Memory Error - mcputs\n"); return -1; }
+    char *messagePtr = message;
+
+    // Copy the operational status into message buffer
+    netOrder = htonl(status);
+    memcpy(messagePtr, &netOrder, STATUS_SIZE);
+    messagePtr += STATUS_SIZE;
+
+    // Send the response message
+    Rio_writen(connfd, message, messageSize);
+    free(message);
+
+    return status;
 }
 
+// Return 0 if the listing is successful, -1 if fails
 int listFilesRequest(rio_t *rio, int connfd) {
-
-
-    /*******************************
-     * List Files Request Message  *
-     *******************************/
-
+    unsigned int datalen, netOrder, status, messageSize;
+    char *message;
 
     /*******************************
      * List Files Response Message *
      *******************************/
 
+    // Obtain data length
+    datalen = numFiles * FILE_NAME_SIZE;
 
+    // Set message size according to the protocol
+    messageSize = STATUS_SIZE + MAX_NUM_BYTES_IN_FILE + datalen;
+
+    // Allocate memory for the message buffer defined by the protocol
+    message = (char*) malloc (sizeof(char*)*messageSize);
+    if(message == NULL) { fprintf(stderr, "Memory Error - mcputs\n"); return -1; }
+    char *messagePtr = message;
+    status = 0;
+
+    // Copy the operational status into message buffer
+    netOrder = htonl(status);
+    memcpy(messagePtr, &netOrder, STATUS_SIZE);
+    messagePtr += STATUS_SIZE;
+
+    // Copy the data length into message buffer
+    netOrder = htonl(datalen);
+    memcpy(messagePtr, &netOrder, MAX_NUM_BYTES_IN_FILE);
+    messagePtr += MAX_NUM_BYTES_IN_FILE;
+
+    // Copy file data into message buffer
+    memcpy(messagePtr, fileList, datalen);
+    messagePtr += datalen;
+
+    // Send the response message
+    Rio_writen(connfd, message, messageSize);
+    free(message);
+
+    return status;
 }
 
 // Adds the file name to the last element of the file list
