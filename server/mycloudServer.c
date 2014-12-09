@@ -9,7 +9,7 @@ RUDY BROOKS
 #include <stdio.h>
 #include <stdlib.h>
 #include "../mycloud.h"
-#include "csapp.h"
+#include "../csapp.h"
 #include <string.h>
 
 // Globals
@@ -162,7 +162,7 @@ int storeRequest(rio_t *rio, int connfd) {
     if((n = Rio_readnb(rio, dataBuf, fileSize)) == fileSize) {
         // Allocate memory for the data
         data = (char*) malloc (sizeof(char)*fileSize);
-        if(data == NULL) { fprintf(stderr, "Memory Error - mcput\n"); return -1; }
+        if(data == NULL) { fprintf(stderr, "Memory Error\n"); return -1; }
 
         // Copy binary data from buffer
         memcpy(data, &dataBuf, fileSize);
@@ -190,7 +190,7 @@ int storeRequest(rio_t *rio, int connfd) {
 
     // Allocate memory for the message buffer defined by the protocol
     message = (char*) malloc (sizeof(char*)*messageSize);
-    if(message == NULL) { fprintf(stderr, "Memory Error - mcputs\n"); return -1; }
+    if(message == NULL) { fprintf(stderr, "Memory Error\n"); return -1; }
     char *messagePtr = message;
 
     // Copy the operational status into message buffer
@@ -237,12 +237,16 @@ int retrieveRequest(rio_t *rio, int connfd) {
     else {
         // Check if file exists and open it
         file = fopen(fileName, "r");
-        if(file == 0) { fprintf(stderr, "Cannot open input file!\n"); fileSize = 0; status = -1; }
+        if(file == 0) { fprintf(stderr, "Cannot open input file\n"); fileSize = 0; status = -1; }
         else {
             // Obtain file size
             fseek(file, 0, SEEK_END);
             fileSize = ftell(file);
             rewind(file);
+
+            // Allocate memory for the data buffer
+            data = (char*) malloc (sizeof(char)*fileSize);
+            if(data == NULL) { fprintf(stderr, "Memory Error\n"); return -1; }
 
             // Copy file data into data buffer
             if((n = fread(data, 1, fileSize, file)) == fileSize) { fclose(file); status = 0; }
@@ -255,7 +259,7 @@ int retrieveRequest(rio_t *rio, int connfd) {
 
     // Allocate memory for the message buffer defined by the protocol
     message = (char*) malloc (sizeof(char*)*messageSize);
-    if(message == NULL) { fprintf(stderr, "Memory Error - mcputs\n"); return -1; }
+    if(message == NULL) { fprintf(stderr, "Memory Error\n"); return -1; }
     char *messagePtr = message;
 
     // Copy the operational status into message buffer
@@ -319,7 +323,7 @@ int deleteRequest(rio_t *rio, int connfd) {
 
     // Allocate memory for the message buffer defined by the protocol
     message = (char*) malloc (sizeof(char*)*messageSize);
-    if(message == NULL) { fprintf(stderr, "Memory Error - mcputs\n"); return -1; }
+    if(message == NULL) { fprintf(stderr, "Memory Error\n"); return -1; }
     char *messagePtr = message;
 
     // Copy the operational status into message buffer
@@ -351,7 +355,7 @@ int listFilesRequest(rio_t *rio, int connfd) {
 
     // Allocate memory for the message buffer defined by the protocol
     message = (char*) malloc (sizeof(char*)*messageSize);
-    if(message == NULL) { fprintf(stderr, "Memory Error - mcputs\n"); return -1; }
+    if(message == NULL) { fprintf(stderr, "Memory Error\n"); return -1; }
     char *messagePtr = message;
     status = 0;
 
