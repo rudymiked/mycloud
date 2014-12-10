@@ -19,23 +19,19 @@ int main(int argc, char *argv[]) {
   unsigned int tcp_port     = atoi(argv[2]);
   unsigned int secret_key   = atoi(argv[3]);   
   char *file_name           = argv[4];
-  size_t n;
   FILE *fstream;
 
   if (argc != 5) { fprintf(stderr, "Usage: ./mcget <machine> <port> <secret key> <filename>i\n"); return -1;}
 
   //run Libary/API call
-  int status = mycloud_getfile(machine_name, tcp_port, secret_key, file_name, data, datalen);
-  
-  // Write to file
-  if ((fstream = Fopen(file_name, "w")) != NULL) { 
-    Fwrite(data, sizeof(char), datalen, fstream);
-    Fclose(fstream);
-    return 0;
-  } else { 
-    printf("Cannot open file: %s !\n", file_name);
-    return -1;
-  }
+  int status = mycloud_getfile(machine_name, tcp_port, secret_key, file_name, &data, &datalen);
 
-  return -1;
+  //printf("datalen: %d\n", datalen);
+  //printf("%s \n", data);
+
+  // write to stdout
+  //write(1, data, datalen);   <- also prints
+  printf("%s \n", data);
+
+  return status;
 }
