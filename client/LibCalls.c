@@ -6,7 +6,7 @@ RUDY BROOKS
 
 ***************************/
 
-#include "csapp.h"
+#include "../csapp.h"
 #include "../mycloud.h"
 
 
@@ -138,11 +138,11 @@ int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
  // hp = Gethostbyaddr((const char *)&serveraddr.sin_addr.s_addr,sizeof(serveraddr.sin_addr.s_addr), AF_INET);
  //  haddrp = inet_ntoa(serveraddr.sin_addr);
   
-  //rio_t rio;
-  //Rio_readinitb(rio, clientfd);
+  rio_t rio;
+  Rio_readinitb(&rio, clientfd);
   printf("cfd: %d\n", clientfd);  
 
-  if((n = Rio_readnb(rio, buf, STATUS_SIZE)) == STATUS_SIZE) {
+  if((n = Rio_readnb(&rio, buf, STATUS_SIZE)) == STATUS_SIZE) {
     // Copy binary data from buffer
     memcpy(&netOrder, &buf, GET_STATUS_SIZE);
     status = ntohl(netOrder);
@@ -152,7 +152,7 @@ int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
     printf("status read failed\n");
   }
 
-  if((n = Rio_readnb(rio, fileSizeBuf, MAX_NUM_BYTES_IN_FILE)) == MAX_NUM_BYTES_IN_FILE) {
+  if((n = Rio_readnb(&rio, fileSizeBuf, MAX_NUM_BYTES_IN_FILE)) == MAX_NUM_BYTES_IN_FILE) {
     memcpy(&netOrder, &buf, MAX_NUM_BYTES_IN_FILE);
     bytesInFile = htonl(netOrder);
     printf("bytes in file: %d \n", bytesInFile);
@@ -161,7 +161,7 @@ int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
     printf("max bytes failed\n");
   }
   
-  if((n = Rio_readnb(rio, dataBuf, bytesInFile)) == bytesInFile) {
+  if((n = Rio_readnb(&rio, dataBuf, bytesInFile)) == bytesInFile) {
     printf("client received %d bytes \n", (int)n);
     
     // Allocate memory for the data
@@ -303,11 +303,11 @@ int mycloud_listfiles(char *MachineName, int TCPport, int SecretKey, char *list,
  // hp = Gethostbyaddr((const char *)&serveraddr.sin_addr.s_addr,sizeof(serveraddr.sin_addr.s_addr), AF_INET);
  //  haddrp = inet_ntoa(serveraddr.sin_addr);
   
-  //rio_t rio;
-  //Rio_readinitb(rio, clientfd);
+  rio_t rio;
+  Rio_readinitb(&rio, clientfd);
   printf("cfd: %d\n", clientfd);  
 
-  if((n = Rio_readnb(rio, buf, STATUS_SIZE)) == STATUS_SIZE) {
+  if((n = Rio_readnb(&rio, buf, STATUS_SIZE)) == STATUS_SIZE) {
     // Copy binary data from buffer
     memcpy(&netOrder, &buf, GET_STATUS_SIZE);
     status = ntohl(netOrder);
@@ -317,7 +317,7 @@ int mycloud_listfiles(char *MachineName, int TCPport, int SecretKey, char *list,
     printf("status read failed\n");
   }
 
-  if((n = Rio_readnb(rio, listSizeBuf, MAX_NUM_BYTES_IN_FILE)) == MAX_NUM_BYTES_IN_FILE) {
+  if((n = Rio_readnb(&rio, listSizeBuf, MAX_NUM_BYTES_IN_FILE)) == MAX_NUM_BYTES_IN_FILE) {
     memcpy(&netOrder, &buf, MAX_NUM_BYTES_IN_FILE);
     bytesInFile = htonl(netOrder);
     printf("bytes in file: %d \n", bytesInFile);
@@ -326,7 +326,7 @@ int mycloud_listfiles(char *MachineName, int TCPport, int SecretKey, char *list,
     printf("max bytes failed\n");
   }
   
-  if((n = Rio_readnb(rio, listBuf, bytesInFile)) == bytesInFile) {
+  if((n = Rio_readnb(&rio, listBuf, bytesInFile)) == bytesInFile) {
     printf("client received %d bytes \n", (int)n);
     
     // Allocate memory for the list 
