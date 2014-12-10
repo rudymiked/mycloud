@@ -27,6 +27,7 @@ mycloudServer.c
 **General**
 ```
 .gitignore
+Doc.txt
 Makefile
 README.md
 csapp.c
