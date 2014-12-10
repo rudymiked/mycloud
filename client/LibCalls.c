@@ -74,7 +74,7 @@ int mycloud_putfile(char *MachineName, int TCPport, int SecretKey, char *FileNam
 
 //retrieve bytes of data from "FileName" 
 //returns the number of bytes in the file, or -1 for error
-int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filename, char *data, int datalen) {
+int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filename, char **data, int *datalen) {
 
   int clientfd;
   char *message;
@@ -103,10 +103,7 @@ int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
   messagePtr += FILE_NAME_SIZE;
 
   clientfd = Open_clientfd(MachineName, TCPport);
-  printf("cfd: %d\n", clientfd);
   Rio_writen(clientfd, message, messageSize);
-  //Rio_readn(clientfd, data, datalen);
-  //Close(clientfd);
   free(message);
 
   //
@@ -119,62 +116,46 @@ int mycloud_getfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
   char fileSizeBuf[MAX_NUM_BYTES_IN_FILE];
   char dataBuf[MAX_FILE_SIZE];
   unsigned int status, bytesInFile;
-
-  //socklen_t serverlen;
-  //int listenfd, connfd; 
-  //struct sockaddr_in serveraddr;
-  
-  //Debugging
-  //struct hostent *hp;
-  //char *haddrp;
- 
-  //listenfd = Open_listenfd(TCPport);
-  
-  //serverlen = sizeof(serveraddr); 
-  //connfd = Accept(listenfd, (SA *)&serveraddr, &serverlen);
-  
-  //Debugging 
-  // Determine the doman name and IP addess of the server
- // hp = Gethostbyaddr((const char *)&serveraddr.sin_addr.s_addr,sizeof(serveraddr.sin_addr.s_addr), AF_INET);
- //  haddrp = inet_ntoa(serveraddr.sin_addr);
   
   rio_t rio;
   Rio_readinitb(&rio, clientfd);
-  printf("cfd: %d\n", clientfd);  
+
 
   if((n = Rio_readnb(&rio, buf, STATUS_SIZE)) == STATUS_SIZE) {
     // Copy binary data from buffer
-    memcpy(&netOrder, &buf, GET_STATUS_SIZE);
+    memcpy(&netOrder, &buf, STATUS_SIZE);
     status = ntohl(netOrder);
-    printf("Status: %d\n", status);
+  //  printf("Status: %d\n", status);
   } else {
     status = -1;
-    printf("status read failed\n");
+    //printf("status read failed\n");
   }
+
 
   if((n = Rio_readnb(&rio, fileSizeBuf, MAX_NUM_BYTES_IN_FILE)) == MAX_NUM_BYTES_IN_FILE) {
-    memcpy(&netOrder, &buf, MAX_NUM_BYTES_IN_FILE);
-    bytesInFile = htonl(netOrder);
-    printf("bytes in file: %d \n", bytesInFile);
+    memcpy(&netOrder, &fileSizeBuf, MAX_NUM_BYTES_IN_FILE);
+    *datalen = htonl(netOrder);
+    //printf("bytes in file dl: %d \n", *datalen);
   } else {
     status = -1;
-    printf("max bytes failed\n");
-  }
-  
-  if((n = Rio_readnb(&rio, dataBuf, bytesInFile)) == bytesInFile) {
-    printf("client received %d bytes \n", (int)n);
-    
-    // Allocate memory for the data
-    data = (char*) malloc (sizeof(char)*bytesInFile);
-    if (data == NULL) {fprintf(stderr, "Memory Error - mcgets \n"); return -1;} else {
-    status = -1;
+    //printf("max bytes failed\n");
   }
 
-    memcpy(data, &dataBuf, bytesInFile);
+  //need to do this in order to Rio_readnb to work
+  bytesInFile = *datalen;
+  
+  if((n = Rio_readnb(&rio, dataBuf, bytesInFile)) == bytesInFile) {
+
+    *data = (char*) malloc (sizeof(char)*bytesInFile);
+    if (*data == NULL) {fprintf(stderr, "Memory Error - mcgets \n"); return -1;}
+    memcpy(*data, &dataBuf, bytesInFile);
+  
+    //printf("client received %d bytes \n", (int)n);
   } else {
     status = -1;
+    //printf("could not retrieve file data\n");
   }
-  
+
   Close(clientfd);
 
   return status;
@@ -241,7 +222,7 @@ int mycloud_delfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
 // server - prints each file separated by '\n'
 // 0 = success, -1 = error
 
-int mycloud_listfiles(char *MachineName, int TCPport, int SecretKey, char *list, int list_len) {
+int mycloud_listfiles(char *MachineName, int TCPport, int SecretKey, char **list, int *list_len) {
 
   int clientfd;
   char *message;
@@ -265,84 +246,54 @@ int mycloud_listfiles(char *MachineName, int TCPport, int SecretKey, char *list,
   memcpy(messagePtr, &netOrder, REQUEST_TYPE_SIZE);
   messagePtr += REQUEST_TYPE_SIZE;
 
+  // Write to server
   clientfd = Open_clientfd(MachineName, TCPport);
   Rio_writen(clientfd, message, messageSize);
-  // Retrieve list buffer from server
-  Rio_readn(clientfd, list, list_len);
-  printf("list: %s \n", list);
-  Close(clientfd);
   free(message);
- 
 
   //
   // Receieve operational status
   //
-  
   size_t n;
-  int GET_STATUS_SIZE = STATUS_SIZE + MAX_NUM_BYTES_IN_FILE + MAX_FILE_SIZE;
-  char buf[GET_STATUS_SIZE];
+  char statusBuf[STATUS_SIZE];
   char listSizeBuf[MAX_NUM_BYTES_IN_FILE];
   char listBuf[MAX_FILE_SIZE];
-  unsigned int status, bytesInFile;
-
-  //socklen_t serverlen;
-  //int listenfd, connfd; 
-  //struct sockaddr_in serveraddr;
-  
-  //Debugging
-  //struct hostent *hp;
-  //char *haddrp;
- 
-  //listenfd = Open_listenfd(TCPport);
-  
-  //serverlen = sizeof(serveraddr); 
-  //connfd = Accept(listenfd, (SA *)&serveraddr, &serverlen);
-  
-  //Debugging 
-  // Determine the doman name and IP addess of the server
- // hp = Gethostbyaddr((const char *)&serveraddr.sin_addr.s_addr,sizeof(serveraddr.sin_addr.s_addr), AF_INET);
- //  haddrp = inet_ntoa(serveraddr.sin_addr);
-  
+  unsigned int status;
   rio_t rio;
   Rio_readinitb(&rio, clientfd);
-  printf("cfd: %d\n", clientfd);  
 
-  if((n = Rio_readnb(&rio, buf, STATUS_SIZE)) == STATUS_SIZE) {
+  // Get the status
+  if((n = Rio_readnb(&rio, statusBuf, STATUS_SIZE)) == STATUS_SIZE) {
     // Copy binary data from buffer
-    memcpy(&netOrder, &buf, GET_STATUS_SIZE);
+    memcpy(&netOrder, &statusBuf, STATUS_SIZE);
     status = ntohl(netOrder);
-    printf("Status: %d\n", status);
   } else {
     status = -1;
-    printf("status read failed\n");
   }
 
+  // Get the list size
   if((n = Rio_readnb(&rio, listSizeBuf, MAX_NUM_BYTES_IN_FILE)) == MAX_NUM_BYTES_IN_FILE) {
-    memcpy(&netOrder, &buf, MAX_NUM_BYTES_IN_FILE);
-    bytesInFile = htonl(netOrder);
-    printf("bytes in file: %d \n", bytesInFile);
+    // Copy binary data from buffer
+    memcpy(&netOrder, &listSizeBuf, MAX_NUM_BYTES_IN_FILE);
+    *list_len = ntohl(netOrder);
   } else {
-    status = -1;
-    printf("max bytes failed\n");
-  }
-  
-  if((n = Rio_readnb(&rio, listBuf, bytesInFile)) == bytesInFile) {
-    printf("client received %d bytes \n", (int)n);
-    
-    // Allocate memory for the list 
-    list = (char*) malloc (sizeof(char)*bytesInFile);
-    if (list == NULL) {fprintf(stderr, "Memory Error - mcgets \n"); return -1;} else {
     status = -1;
   }
 
-    memcpy(list, &listBuf, bytesInFile);
+  // Get the data
+  if((n = Rio_readnb(&rio, listBuf, *list_len)) == *list_len) {
+    // Allocate memory for the data
+    *list = (char*) malloc (*list_len);
+    if(*list == NULL) { fprintf(stderr, "Memory Error\n"); return -1; }
+
+    // Copy binary data from buffer
+    memcpy(*list, &listBuf, *list_len);
+    status = 0;
   } else {
     status = -1;
   }
-  
+
   Close(clientfd);
-
   return status;
-
 }
 
