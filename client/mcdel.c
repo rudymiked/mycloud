@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
   //run Libary/API call
   int status = mycloud_delfile(machine_name, tcp_port, secret_key, file_name);
-  printf("Status = %d", status);
+  //printf("Status = %d", status);
   return status;
 
   /******DEBUGGING********************

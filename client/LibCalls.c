@@ -214,7 +214,7 @@ int mycloud_delfile(char *MachineName, int TCPport, int SecretKey, char *Filenam
 
   clientfd = Open_clientfd(MachineName, TCPport);
   Rio_writen(clientfd, message, messageSize);
-  Close(clientfd);
+  //Close(clientfd);
   free(message);
 
   //
