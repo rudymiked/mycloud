@@ -16,7 +16,7 @@ mclist: client/mclist.o
 mcget: client/mcget.o
 	$(CC) $(FLAGS) $(LIBS) -o client/mcget client/mcget.c csapp.c
 mycloudServer : server/mycloudServer.o
-	$(CC) $(FLAGS) $(LIBS) -o client/mycloudServer server/mycloudServer.c csapp.c
+	$(CC) $(FLAGS) $(LIBS) -o server/mycloudServer server/mycloudServer.c csapp.c
 
 clean:
 	rm -f $(OBJS) client/*.o
