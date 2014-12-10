@@ -21,20 +21,39 @@ int main(int argc, char *argv[]) {
 
   if (argc != 5) { fprintf(stderr, "Usage: ./mcput <machine> <port> <secret key> <filename>\n"); return -1; }
 
-  // Check if file exists and open it
-  FILE *file = fopen(file_name, "r");
-  if(file == 0) { fprintf(stderr, "Cannot open input file!\n"); return -1; }
+  // Read file from stdin
+  datalen = 0;
+  int offset = 0;
+  int currentBufSize = 1;
+  data = malloc(currentBufSize);
+
+  while((n = fread(data + offset, 1, 1, stdin)) > 0) {
+    datalen += (int)n;
+    int newBufSize = currentBufSize + (int)n;
+    char *tmp = realloc(data, newBufSize);
+    if(tmp) {
+      data = tmp;
+      offset = currentBufSize;
+      currentBufSize = newBufSize;
+    }
+  }
+
+  int status = mycloud_putfile(machine_name, tcp_port, secret_key, file_name, data, datalen);
+  free(data);
+  return status;
 
   // Obtain file size
+  /*
   fseek(file, 0, SEEK_END);
   datalen = ftell(file);
   rewind(file);
-
+  */
   // Allocate memory for the data buffer
-  data = (char*) malloc (sizeof(char)*datalen);
-  if(data == NULL) { fprintf(stderr, "Memory Error - mcput\n"); return -1; }
+  //data = (char*) malloc (sizeof(char)*datalen);
+  //if(data == NULL) { fprintf(stderr, "Memory Error - mcput\n"); return -1; }
 
   // Copy file data into data buffer and call API
+  /*
   if((n = fread(data, 1, datalen, file)) == datalen) {
     fclose(file);
     int status = mycloud_putfile(machine_name, tcp_port, secret_key, file_name, data, datalen);
@@ -47,7 +66,8 @@ int main(int argc, char *argv[]) {
     free(data);
     return -1;
   }
-
+  
   return -1;
+  */
 }
 
