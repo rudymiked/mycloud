@@ -19,13 +19,13 @@ int main(int argc, char *argv[]) {
 
 
   //run Libary/API call
-  mycloud_delfile(machine_name, tcp_port, secret_key, file_name);
+  int status = mycloud_delfile(machine_name, tcp_port, secret_key, file_name);
+  printf("Status = %d", status);
+  return status;
 
   /******DEBUGGING********************
   int i;
   for(i=1;i<5;++i)
     printf("%d : %s \n", i, argv[i]);
   ************************************/
-
-  return 0;
 }
