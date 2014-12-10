@@ -26,7 +26,8 @@ int main(int argc, char *argv[]) {
   int status = mycloud_getfile(machine_name, tcp_port, secret_key, file_name, &data, &datalen);
 
   // write to stdout
-  printf("%s", data);
+  write(1, data, datalen);
+  //printf("%s", data);
 
   return status;
 }
