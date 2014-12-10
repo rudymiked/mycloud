@@ -13,7 +13,7 @@ RUDY BROOKS
 
 int main(int argc, char *argv[]) {
 
-  int datalen = MAX_NUM_BYTES_IN_FILE;
+  int datalen;
   char *data;
   char *machine_name        = argv[1];
   unsigned int tcp_port     = atoi(argv[2]);
